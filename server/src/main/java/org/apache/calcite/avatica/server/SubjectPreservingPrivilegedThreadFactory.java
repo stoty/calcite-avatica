@@ -44,6 +44,11 @@ class SubjectPreservingPrivilegedThreadFactory implements ThreadFactory {
     return AccessController.doPrivileged(new PrivilegedAction<Thread>() {
       @Override public Thread run() {
         return Subject.doAs(subject, new PrivilegedAction<Thread>() {
+          // Subject.doAs is deprecated and does not work in JDK23+ unless the (also deprecated)
+          // SecurityManager is enabled. However, the replacement API is not available in JDK8,
+          // so as a workaround we require enabling the securityManager on JDK23+.
+          // Also see https://issues.apache.org/jira/browse/CALCITE-6590 and https://openjdk.org/jeps/411
+          @SuppressWarnings("removal")
           @Override public Thread run() {
             Thread thread = new Thread(runnable);
             thread.setDaemon(true);
